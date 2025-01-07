@@ -1,13 +1,28 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import Layout from "@/components/Layout";
+import VideoUpload from "@/components/VideoUpload";
+import VideoSettings from "@/components/VideoSettings";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
+    <Layout>
+      <div className="max-w-6xl mx-auto space-y-8">
+        <div className="text-center space-y-2">
+          <h2 className="text-3xl font-bold text-gray-900">Video Processing</h2>
+          <p className="text-gray-600">
+            Upload your videos and customize processing settings
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          <div className="lg:col-span-2">
+            <VideoUpload />
+          </div>
+          <div>
+            <VideoSettings />
+          </div>
+        </div>
       </div>
-    </div>
+    </Layout>
   );
 };
 
