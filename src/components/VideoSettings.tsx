@@ -10,9 +10,10 @@ const VideoSettings = () => {
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+      <LogoUpload />
+
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Basic Settings</h3>
-        <LogoUpload />
         <FormatSelector />
       </div>
 
