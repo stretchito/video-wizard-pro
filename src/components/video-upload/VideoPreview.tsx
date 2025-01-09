@@ -1,14 +1,41 @@
+import { useEffect, useRef } from "react";
 import { X } from "lucide-react";
 
 interface VideoPreviewProps {
   file: File & { preview?: string };
   onRemove: () => void;
+  onFirstFrame?: (frameUrl: string) => void;
 }
 
-const VideoPreview = ({ file, onRemove }: VideoPreviewProps) => {
+const VideoPreview = ({ file, onRemove, onFirstFrame }: VideoPreviewProps) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (videoRef.current && onFirstFrame) {
+      const video = videoRef.current;
+      
+      video.addEventListener('loadeddata', () => {
+        video.currentTime = 0;
+      });
+
+      video.addEventListener('seeked', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const frameUrl = canvas.toDataURL('image/jpeg');
+          onFirstFrame(frameUrl);
+        }
+      });
+    }
+  }, [onFirstFrame]);
+
   return (
     <div className="relative group animate-fadeIn">
       <video
+        ref={videoRef}
         src={file.preview}
         className="w-full h-40 object-cover rounded-lg"
       />

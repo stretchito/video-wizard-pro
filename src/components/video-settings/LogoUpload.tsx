@@ -3,7 +3,11 @@ import { Upload, X } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
 
-const LogoUpload = () => {
+interface LogoUploadProps {
+  onLogoUploaded: (url: string) => void;
+}
+
+const LogoUpload = ({ onLogoUploaded }: LogoUploadProps) => {
   const [logo, setLogo] = useState<File | null>(null);
   const [logoPreview, setLogoPreview] = useState<string>("");
 
@@ -15,9 +19,11 @@ const LogoUpload = () => {
         return;
       }
       setLogo(file);
-      setLogoPreview(URL.createObjectURL(file));
+      const previewUrl = URL.createObjectURL(file);
+      setLogoPreview(previewUrl);
+      onLogoUploaded(previewUrl);
     }
-  }, []);
+  }, [onLogoUploaded]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -34,6 +40,7 @@ const LogoUpload = () => {
     }
     setLogo(null);
     setLogoPreview("");
+    onLogoUploaded("");
   };
 
   return (
