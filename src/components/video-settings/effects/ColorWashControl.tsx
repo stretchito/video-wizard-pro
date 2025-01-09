@@ -3,7 +3,7 @@ import { Slider } from "@/components/ui/slider";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { EyeDropper } from "lucide-react";
+import { Pipette } from "lucide-react";
 
 interface ColorWashControlProps {
   onChange: (value: { enabled: boolean; color: string; intensity: number }) => void;
@@ -62,7 +62,7 @@ const ColorWashControl = ({ onChange }: ColorWashControlProps) => {
                 }}
                 className="p-2 hover:bg-gray-100 rounded"
               >
-                <EyeDropper className="w-6 h-6" />
+                <Pipette className="w-6 h-6" />
               </button>
             </div>
           </div>
