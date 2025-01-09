@@ -15,7 +15,11 @@ interface VideoEffect {
   fadeEffect?: { enabled: boolean; duration: number };
 }
 
-const AdvancedSettings = () => {
+interface AdvancedSettingsProps {
+  onColorWashChange: (colorWash: { enabled: boolean; color: string; intensity: number }) => void;
+}
+
+const AdvancedSettings = ({ onColorWashChange }: AdvancedSettingsProps) => {
   const [effects, setEffects] = useState<VideoEffect>({});
 
   const updateEffect = (effectName: keyof VideoEffect, value: any) => {
@@ -40,7 +44,10 @@ const AdvancedSettings = () => {
           />
           
           <ColorWashControl
-            onChange={(value) => updateEffect("colorWash", value)}
+            onChange={(value) => {
+              updateEffect("colorWash", value);
+              onColorWashChange(value);
+            }}
           />
           
           <ZoomControl
