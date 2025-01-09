@@ -6,6 +6,8 @@ import FormatSelector from "./video-settings/FormatSelector";
 import AdvancedSettings from "./video-settings/AdvancedSettings";
 import LogoPreview from "./video-settings/logo-controls/LogoPreview";
 import LogoControls from "./video-settings/logo-controls/LogoControls";
+import PresetManager from "./video-settings/PresetManager";
+import { VideoPreset } from "@/types/preset";
 
 interface VideoSettingsProps {
   videoPreviewUrl?: string;
@@ -40,9 +42,22 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
     fadeEffect: { enabled: false, duration: 0.5 }
   });
 
+  const handlePresetLoad = (preset: VideoPreset) => {
+    setLogoPosition(preset.logoPosition);
+    setVideoEffects(preset.videoEffects);
+  };
+
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
       <LogoUpload onLogoUploaded={setLogoUrl} />
+      
+      <PresetManager
+        currentSettings={{
+          logoPosition,
+          videoEffects,
+        }}
+        onPresetLoad={handlePresetLoad}
+      />
       
       <div className="space-y-4">
         <LogoPreview 
