@@ -59,18 +59,21 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
       
       const progressInterval = setInterval(() => {
         setProgress(prev => {
-          if (prev >= 90) {
-            clearInterval(progressInterval);
-            return 90;
+          if (prev >= 95) {
+            return 95;
           }
-          return prev + 10;
+          return prev + 5;
         });
       }, 1000);
 
       await onProcess();
       
+      // Ensure smooth transition to 100%
       clearInterval(progressInterval);
-      setProgress(100);
+      setProgress(95);
+      setTimeout(() => {
+        setProgress(100);
+      }, 500);
       
       toast({
         title: "Success",
@@ -83,8 +86,10 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
         variant: "destructive",
       });
     } finally {
-      setIsProcessing(false);
-      setProgress(0);
+      setTimeout(() => {
+        setIsProcessing(false);
+        setProgress(0);
+      }, 1000);
     }
   };
 
