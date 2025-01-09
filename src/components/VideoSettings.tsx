@@ -11,6 +11,16 @@ interface VideoSettingsProps {
   videoPreviewUrl?: string;
 }
 
+interface VideoEffects {
+  brightness?: { enabled: boolean; value: number };
+  contrast?: { enabled: boolean; value: number };
+  desaturation?: { enabled: boolean; value: number };
+  colorWash?: { enabled: boolean; color: string; intensity: number };
+  zoom?: { enabled: boolean; value: number };
+  stabilization?: boolean;
+  fadeEffect?: { enabled: boolean; duration: number };
+}
+
 const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [logoPosition, setLogoPosition] = useState({
@@ -20,10 +30,14 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
     size: 15
   });
   const [logoUrl, setLogoUrl] = useState<string>();
-  const [colorWash, setColorWash] = useState({
-    enabled: false,
-    color: "#000000",
-    intensity: 50
+  const [videoEffects, setVideoEffects] = useState<VideoEffects>({
+    brightness: { enabled: false, value: 50 },
+    contrast: { enabled: false, value: 50 },
+    desaturation: { enabled: false, value: 100 },
+    colorWash: { enabled: false, color: "#000000", intensity: 50 },
+    zoom: { enabled: false, value: 100 },
+    stabilization: false,
+    fadeEffect: { enabled: false, duration: 0.5 }
   });
 
   return (
@@ -35,7 +49,7 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
           logoUrl={logoUrl}
           videoPreviewUrl={videoPreviewUrl}
           position={logoPosition}
-          colorWash={colorWash}
+          videoEffects={videoEffects}
         />
         
         <div className="space-y-4">
@@ -67,7 +81,8 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
 
         {isAdvancedOpen && (
           <AdvancedSettings 
-            onColorWashChange={(colorWashSettings) => setColorWash(colorWashSettings)}
+            effects={videoEffects}
+            onEffectsChange={setVideoEffects}
           />
         )}
       </div>

@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
 
 interface LogoPreviewProps {
   logoUrl?: string;
@@ -10,18 +9,22 @@ interface LogoPreviewProps {
     rotation: number;
     size: number;
   };
-  colorWash?: {
-    enabled: boolean;
-    color: string;
-    intensity: number;
+  videoEffects: {
+    brightness?: { enabled: boolean; value: number };
+    contrast?: { enabled: boolean; value: number };
+    desaturation?: { enabled: boolean; value: number };
+    colorWash?: { enabled: boolean; color: string; intensity: number };
+    zoom?: { enabled: boolean; value: number };
+    stabilization?: boolean;
+    fadeEffect?: { enabled: boolean; duration: number };
   };
 }
 
-const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPreviewProps) => {
+const LogoPreview = ({ logoUrl, videoPreviewUrl, position, videoEffects }: LogoPreviewProps) => {
   const [safeZoneVisible, setSafeZoneVisible] = useState(true);
 
   const getLogoStyle = () => {
-    const style: React.CSSProperties = {
+    return {
       position: 'absolute',
       transform: `translate(-50%, -50%) rotate(${position.rotation}deg)`,
       width: `${position.size}%`,
@@ -30,17 +33,47 @@ const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPrev
       maxWidth: '20%',
       transition: 'all 0.2s ease-out',
       zIndex: 30,
-    };
-    return style;
+    } as React.CSSProperties;
   };
 
-  const getColorWashStyle = () => {
-    if (!colorWash?.enabled) return {};
+  const getVideoStyle = () => {
+    const filters = [];
+    
+    if (videoEffects.brightness?.enabled) {
+      filters.push(`brightness(${videoEffects.brightness.value / 50})`);
+    }
+    
+    if (videoEffects.contrast?.enabled) {
+      filters.push(`contrast(${videoEffects.contrast.value / 50})`);
+    }
+    
+    if (videoEffects.desaturation?.enabled) {
+      const saturationValue = videoEffects.desaturation.value;
+      filters.push(`saturate(${saturationValue / 100})`);
+    }
+    
+    if (videoEffects.zoom?.enabled) {
+      filters.push(`scale(${videoEffects.zoom.value / 100})`);
+    }
+
     return {
       position: 'absolute',
       inset: 0,
-      backgroundColor: colorWash.color,
-      opacity: colorWash.intensity / 100,
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover',
+      filter: filters.join(' '),
+      zIndex: 10,
+    } as React.CSSProperties;
+  };
+
+  const getColorWashStyle = () => {
+    if (!videoEffects.colorWash?.enabled) return {};
+    return {
+      position: 'absolute',
+      inset: 0,
+      backgroundColor: videoEffects.colorWash.color,
+      opacity: videoEffects.colorWash.intensity / 100,
       zIndex: 20,
       pointerEvents: 'none',
     } as React.CSSProperties;
@@ -54,13 +87,12 @@ const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPrev
           <img 
             src={videoPreviewUrl} 
             alt="Video preview"
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ zIndex: 10 }}
+            style={getVideoStyle()}
           />
         )}
 
         {/* Color Wash Layer (z-index: 20) */}
-        {colorWash?.enabled && (
+        {videoEffects.colorWash?.enabled && (
           <div style={getColorWashStyle()} />
         )}
 

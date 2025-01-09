@@ -1,14 +1,16 @@
 import { useState } from "react";
 import BrightnessControl from "./effects/BrightnessControl";
 import ContrastControl from "./effects/ContrastControl";
+import DesaturationControl from "./effects/DesaturationControl";
 import ColorWashControl from "./effects/ColorWashControl";
 import ZoomControl from "./effects/ZoomControl";
 import StabilizationControl from "./effects/StabilizationControl";
 import FadeEffectControl from "./effects/FadeEffectControl";
 
-interface VideoEffect {
+interface VideoEffects {
   brightness?: { enabled: boolean; value: number };
   contrast?: { enabled: boolean; value: number };
+  desaturation?: { enabled: boolean; value: number };
   colorWash?: { enabled: boolean; color: string; intensity: number };
   zoom?: { enabled: boolean; value: number };
   stabilization?: boolean;
@@ -16,17 +18,16 @@ interface VideoEffect {
 }
 
 interface AdvancedSettingsProps {
-  onColorWashChange: (colorWash: { enabled: boolean; color: string; intensity: number }) => void;
+  effects: VideoEffects;
+  onEffectsChange: (effects: VideoEffects) => void;
 }
 
-const AdvancedSettings = ({ onColorWashChange }: AdvancedSettingsProps) => {
-  const [effects, setEffects] = useState<VideoEffect>({});
-
-  const updateEffect = (effectName: keyof VideoEffect, value: any) => {
-    setEffects((prev) => ({
-      ...prev,
+const AdvancedSettings = ({ effects, onEffectsChange }: AdvancedSettingsProps) => {
+  const updateEffect = (effectName: keyof VideoEffects, value: any) => {
+    onEffectsChange({
+      ...effects,
       [effectName]: value,
-    }));
+    });
   };
 
   return (
@@ -42,12 +43,13 @@ const AdvancedSettings = ({ onColorWashChange }: AdvancedSettingsProps) => {
           <ContrastControl
             onChange={(value) => updateEffect("contrast", value)}
           />
+
+          <DesaturationControl
+            onChange={(value) => updateEffect("desaturation", value)}
+          />
           
           <ColorWashControl
-            onChange={(value) => {
-              updateEffect("colorWash", value);
-              onColorWashChange(value);
-            }}
+            onChange={(value) => updateEffect("colorWash", value)}
           />
           
           <ZoomControl
