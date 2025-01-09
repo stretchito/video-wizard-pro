@@ -5,8 +5,13 @@ import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import winston from 'winston';
+import { 
+  videoProcessingDuration,
+  videoProcessingErrors,
+  activeProcessingJobs,
+  updateStorageUsage
+} from '../utils/metrics';
 
-// Configure winston logger
 const logger = winston.createLogger({
   level: 'info',
   format: winston.format.combine(
@@ -33,10 +38,12 @@ export const processVideoHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  const startTime = Date.now();
   let inputPath: string | undefined;
   let processedVideoPath: string | undefined;
 
   try {
+    activeProcessingJobs.inc();
     logger.info('Starting video processing request', {
       headers: req.headers,
       body: req.body,
@@ -45,6 +52,7 @@ export const processVideoHandler = async (
 
     if (!req.file) {
       logger.error('No video file uploaded');
+      videoProcessingErrors.inc({ error_type: 'no_file' });
       throw new AppError('No video file uploaded', 400);
     }
 
@@ -61,6 +69,7 @@ export const processVideoHandler = async (
     // Check if file is too large (25MB limit)
     if (fileSizeInMB > 25) {
       logger.error('File size exceeds limit', { fileSizeInMB });
+      videoProcessingErrors.inc({ error_type: 'file_too_large' });
       throw new AppError('File size exceeds 25MB limit', 400);
     }
 
@@ -100,13 +109,22 @@ export const processVideoHandler = async (
 
     if (uploadError) {
       logger.error('Supabase upload error', uploadError);
+      videoProcessingErrors.inc({ error_type: 'upload_error' });
       throw new AppError('Failed to upload processed video: ' + uploadError.message, 500);
     }
+
+    // Update storage metrics
+    const processedStats = fs.statSync(processedVideoPath);
+    await updateStorageUsage(processedStats.size);
 
     // Get public URL for the uploaded video
     const { data: { publicUrl } } = supabase.storage
       .from('videos')
       .getPublicUrl(`processed/${fileName}`);
+
+    // Record processing duration
+    const duration = (Date.now() - startTime) / 1000;
+    videoProcessingDuration.observe(duration);
 
     logger.info('Upload successful, cleaning up temporary files');
 
@@ -134,6 +152,8 @@ export const processVideoHandler = async (
       processedVideoPath
     });
 
+    videoProcessingErrors.inc({ error_type: 'processing_error' });
+
     // Clean up temporary files in case of error
     try {
       if (inputPath && fs.existsSync(inputPath)) {
@@ -147,5 +167,7 @@ export const processVideoHandler = async (
     }
     
     next(error);
+  } finally {
+    activeProcessingJobs.dec();
   }
 };
