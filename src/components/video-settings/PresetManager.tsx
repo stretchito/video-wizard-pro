@@ -21,9 +21,10 @@ import { useToast } from "@/hooks/use-toast";
 interface PresetManagerProps {
   currentSettings: Omit<VideoPreset, 'id' | 'name'>;
   onPresetLoad: (preset: VideoPreset) => void;
+  saveOnly?: boolean;
 }
 
-const PresetManager = ({ currentSettings, onPresetLoad }: PresetManagerProps) => {
+const PresetManager = ({ currentSettings, onPresetLoad, saveOnly = false }: PresetManagerProps) => {
   const [presets, setPresets] = useState<VideoPreset[]>(() => {
     const savedPresets = localStorage.getItem('videoPresets');
     return savedPresets ? JSON.parse(savedPresets) : [];
@@ -72,29 +73,11 @@ const PresetManager = ({ currentSettings, onPresetLoad }: PresetManagerProps) =>
     }
   };
 
-  return (
-    <div className="space-y-4">
-      {presets.length > 0 && (
-        <div className="space-y-2">
-          <label className="text-sm font-medium">User Presets</label>
-          <Select onValueChange={handlePresetSelect}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select a preset" />
-            </SelectTrigger>
-            <SelectContent>
-              {presets.map((preset) => (
-                <SelectItem key={preset.id} value={preset.id}>
-                  {preset.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
+  if (saveOnly) {
+    return (
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="w-full">
             Save As Preset
           </Button>
         </DialogTrigger>
@@ -115,6 +98,28 @@ const PresetManager = ({ currentSettings, onPresetLoad }: PresetManagerProps) =>
           </div>
         </DialogContent>
       </Dialog>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {presets.length > 0 && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">User Presets</label>
+          <Select onValueChange={handlePresetSelect}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select a preset" />
+            </SelectTrigger>
+            <SelectContent>
+              {presets.map((preset) => (
+                <SelectItem key={preset.id} value={preset.id}>
+                  {preset.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
     </div>
   );
 };

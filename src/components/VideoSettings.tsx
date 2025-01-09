@@ -52,13 +52,16 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
       <LogoUpload onLogoUploaded={setLogoUrl} />
       
-      <PresetManager
-        currentSettings={{
-          logoPosition,
-          videoEffects,
-        }}
-        onPresetLoad={handlePresetLoad}
-      />
+      {/* Preset selector moved to top level */}
+      <div className="space-y-2">
+        <PresetManager
+          currentSettings={{
+            logoPosition,
+            videoEffects,
+          }}
+          onPresetLoad={handlePresetLoad}
+        />
+      </div>
       
       <div className="space-y-4">
         <LogoPreview 
@@ -96,10 +99,21 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
         </button>
 
         {isAdvancedOpen && (
-          <AdvancedSettings 
-            effects={videoEffects}
-            onEffectsChange={setVideoEffects}
-          />
+          <div className="space-y-4">
+            <AdvancedSettings 
+              effects={videoEffects}
+              onEffectsChange={setVideoEffects}
+            />
+            {/* Save As Preset button moved inside Advanced Settings */}
+            <PresetManager
+              currentSettings={{
+                logoPosition,
+                videoEffects,
+              }}
+              onPresetLoad={handlePresetLoad}
+              saveOnly
+            />
+          </div>
         )}
       </div>
 
