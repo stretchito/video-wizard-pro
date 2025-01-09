@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
 import FormatSelector from "./video-settings/FormatSelector";
 import PresetManager from "./video-settings/PresetManager";
 import LogoSection from "./video-settings/logo-section/LogoSection";
 import AdvancedSettingsPanel from "./video-settings/advanced-settings/AdvancedSettingsPanel";
+import ProcessingSection from "./video-settings/ProcessingSection";
 import { VideoPreset } from "@/types/preset";
 import { useToast } from "@/hooks/use-toast";
 
@@ -124,23 +123,11 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
         onPresetLoad={handlePresetLoad}
       />
 
-      <div className="space-y-4">
-        {isProcessing ? (
-          <div className="space-y-2">
-            <Progress value={progress} className="w-full" />
-            <p className="text-sm text-gray-500 text-center">Processing video... {progress}%</p>
-          </div>
-        ) : (
-          <Button 
-            className="w-full" 
-            size="lg" 
-            onClick={handleProcess}
-            disabled={isProcessing}
-          >
-            Process Videos
-          </Button>
-        )}
-      </div>
+      <ProcessingSection 
+        isProcessing={isProcessing}
+        progress={progress}
+        onProcess={handleProcess}
+      />
     </div>
   );
 };
