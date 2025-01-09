@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import LogoUpload from "./video-settings/LogoUpload";
@@ -7,7 +7,11 @@ import AdvancedSettings from "./video-settings/AdvancedSettings";
 import LogoPreview from "./video-settings/logo-controls/LogoPreview";
 import LogoControls from "./video-settings/logo-controls/LogoControls";
 
-const VideoSettings = () => {
+interface VideoSettingsProps {
+  videoPreviewUrl?: string;
+}
+
+const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [logoPosition, setLogoPosition] = useState({
     x: 50,
@@ -16,7 +20,6 @@ const VideoSettings = () => {
     size: 15
   });
   const [logoUrl, setLogoUrl] = useState<string>();
-  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string>();
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">

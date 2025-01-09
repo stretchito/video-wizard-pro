@@ -1,8 +1,11 @@
 import Layout from "@/components/Layout";
 import VideoUpload from "@/components/VideoUpload";
 import VideoSettings from "@/components/VideoSettings";
+import { useState } from "react";
 
 const Index = () => {
+  const [selectedVideoFrame, setSelectedVideoFrame] = useState<string>();
+
   return (
     <Layout>
       <div className="max-w-6xl mx-auto space-y-8">
@@ -15,10 +18,10 @@ const Index = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <VideoUpload />
+            <VideoUpload onFrameSelect={setSelectedVideoFrame} />
           </div>
           <div>
-            <VideoSettings />
+            <VideoSettings videoPreviewUrl={selectedVideoFrame} />
           </div>
         </div>
       </div>

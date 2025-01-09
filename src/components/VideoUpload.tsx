@@ -1,55 +1,67 @@
 import { useState, useCallback } from "react";
-import { toast } from "sonner";
 import UploadZone from "./video-upload/UploadZone";
 import VideoPreview from "./video-upload/VideoPreview";
 
-interface VideoFile extends File {
-  preview?: string;
+interface VideoUploadProps {
+  onFrameSelect: (frameUrl: string) => void;
 }
 
-const VideoUpload = () => {
-  const [files, setFiles] = useState<VideoFile[]>([]);
+const VideoUpload = ({ onFrameSelect }: VideoUploadProps) => {
+  const [files, setFiles] = useState<(File & { preview?: string })[]>([]);
 
-  const handleFilesAccepted = useCallback((acceptedFiles: File[]) => {
+  const handleFirstFrame = useCallback((frameUrl: string) => {
+    onFrameSelect(frameUrl);
+  }, [onFrameSelect]);
+
+  const handleUpload = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map(file => 
       Object.assign(file, {
         preview: URL.createObjectURL(file)
       })
     );
+    setFiles(prev => [...prev, ...newFiles]);
+    
+    // If this is the first file, automatically select its frame
+    if (files.length === 0 && newFiles.length > 0) {
+      const video = document.createElement('video');
+      video.src = newFiles[0].preview || '';
+      video.addEventListener('loadeddata', () => {
+        video.currentTime = 0;
+      });
+      video.addEventListener('seeked', () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const frameUrl = canvas.toDataURL('image/jpeg');
+          handleFirstFrame(frameUrl);
+        }
+      });
+    }
+  }, [files.length, handleFirstFrame]);
 
-    setFiles(prev => {
-      const combined = [...prev, ...newFiles];
-      const totalSize = combined.reduce((sum, file) => sum + file.size, 0);
-      
-      if (totalSize > 500 * 1024 * 1024) {
-        toast.error("Total batch size exceeds 500MB limit");
-        return prev;
-      }
-      
-      return combined;
-    });
-  }, []);
-
-  const removeFile = (index: number) => {
-    setFiles(prev => {
-      const newFiles = [...prev];
-      URL.revokeObjectURL(newFiles[index].preview || "");
-      newFiles.splice(index, 1);
-      return newFiles;
-    });
-  };
+  const handleRemove = useCallback((index: number) => {
+    setFiles(prev => prev.filter((_, i) => i !== index));
+    // If removing the last file, clear the preview
+    if (files.length === 1) {
+      handleFirstFrame('');
+    }
+  }, [files.length, handleFirstFrame]);
 
   return (
     <div className="space-y-6">
-      <UploadZone onFilesAccepted={handleFilesAccepted} />
-
+      <UploadZone onUpload={handleUpload} />
+      
       {files.length > 0 && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
           {files.map((file, index) => (
             <VideoPreview
-              key={index}
+              key={file.name}
               file={file}
-              onRemove={() => removeFile(index)}
+              onRemove={() => handleRemove(index)}
+              onFirstFrame={handleFirstFrame}
             />
           ))}
         </div>
