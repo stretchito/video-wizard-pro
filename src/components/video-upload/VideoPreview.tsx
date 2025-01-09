@@ -10,6 +10,21 @@ interface VideoPreviewProps {
 const VideoPreview = ({ file, onRemove, onFirstFrame }: VideoPreviewProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
 
+  const captureFrame = () => {
+    if (videoRef.current && onFirstFrame) {
+      const video = videoRef.current;
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const frameUrl = canvas.toDataURL('image/jpeg');
+        onFirstFrame(frameUrl);
+      }
+    }
+  };
+
   useEffect(() => {
     if (videoRef.current && onFirstFrame) {
       const video = videoRef.current;
@@ -18,17 +33,11 @@ const VideoPreview = ({ file, onRemove, onFirstFrame }: VideoPreviewProps) => {
         video.currentTime = 0;
       });
 
-      video.addEventListener('seeked', () => {
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const ctx = canvas.getContext('2d');
-        if (ctx) {
-          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-          const frameUrl = canvas.toDataURL('image/jpeg');
-          onFirstFrame(frameUrl);
-        }
-      });
+      video.addEventListener('seeked', captureFrame);
+
+      return () => {
+        video.removeEventListener('seeked', captureFrame);
+      };
     }
   }, [onFirstFrame]);
 
@@ -37,7 +46,8 @@ const VideoPreview = ({ file, onRemove, onFirstFrame }: VideoPreviewProps) => {
       <video
         ref={videoRef}
         src={file.preview}
-        className="w-full h-40 object-cover rounded-lg"
+        className="w-full h-40 object-cover rounded-lg cursor-pointer"
+        onClick={captureFrame}
       />
       <button
         onClick={onRemove}

@@ -10,9 +10,14 @@ interface LogoPreviewProps {
     rotation: number;
     size: number;
   };
+  colorWash?: {
+    enabled: boolean;
+    color: string;
+    intensity: number;
+  };
 }
 
-const LogoPreview = ({ logoUrl, videoPreviewUrl, position }: LogoPreviewProps) => {
+const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPreviewProps) => {
   const [safeZoneVisible, setSafeZoneVisible] = useState(true);
 
   // Calculate logo position based on safe zones
@@ -25,8 +30,20 @@ const LogoPreview = ({ logoUrl, videoPreviewUrl, position }: LogoPreviewProps) =
       top: `${position.y}%`,
       maxWidth: '20%',
       transition: 'all 0.2s ease-out',
+      zIndex: 30, // Place logo above color wash
     };
     return style;
+  };
+
+  const getColorWashStyle = () => {
+    if (!colorWash?.enabled) return {};
+    return {
+      position: 'absolute',
+      inset: 0,
+      backgroundColor: colorWash.color,
+      opacity: colorWash.intensity / 100,
+      zIndex: 20, // Place color wash between video and logo
+    } as React.CSSProperties;
   };
 
   return (
@@ -37,18 +54,23 @@ const LogoPreview = ({ logoUrl, videoPreviewUrl, position }: LogoPreviewProps) =
           <img 
             src={videoPreviewUrl} 
             alt="Video preview"
-            className="absolute inset-0 w-full h-full object-cover"
+            className="absolute inset-0 w-full h-full object-cover z-10"
           />
+        )}
+
+        {/* Color Wash Layer */}
+        {colorWash?.enabled && (
+          <div style={getColorWashStyle()} />
         )}
 
         {/* Safe Zones */}
         {safeZoneVisible && (
           <>
             {/* Stories Safe Zone */}
-            <div className="absolute inset-x-0 top-[13%] h-[74%] border-2 border-blue-500/20 pointer-events-none" />
+            <div className="absolute inset-x-0 top-[13%] h-[74%] border-2 border-blue-500/20 pointer-events-none z-40" />
             
             {/* Reels Safe Zone */}
-            <div className="absolute inset-x-[5.5%] top-[5.6%] bottom-[16.7%] border-2 border-green-500/20 pointer-events-none" />
+            <div className="absolute inset-x-[5.5%] top-[5.6%] bottom-[16.7%] border-2 border-green-500/20 pointer-events-none z-40" />
           </>
         )}
 
