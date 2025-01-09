@@ -39,6 +39,7 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
     stabilization: false,
     fadeEffect: { enabled: false, duration: 0.5 }
   });
+  const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
 
   const handlePresetLoad = (preset: VideoPreset) => {
@@ -48,6 +49,25 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
       title: "Preset Loaded",
       description: `Successfully loaded preset: ${preset.name}`,
     });
+  };
+
+  const handleProcess = async () => {
+    try {
+      setIsProcessing(true);
+      await onProcess();
+      toast({
+        title: "Success",
+        description: "Videos processed successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process videos",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -83,8 +103,13 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
         onPresetLoad={handlePresetLoad}
       />
 
-      <Button className="w-full" size="lg" onClick={onProcess}>
-        Process Videos
+      <Button 
+        className="w-full" 
+        size="lg" 
+        onClick={handleProcess}
+        disabled={isProcessing}
+      >
+        {isProcessing ? "Processing..." : "Process Videos"}
       </Button>
     </div>
   );

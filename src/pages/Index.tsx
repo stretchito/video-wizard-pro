@@ -6,6 +6,8 @@ import ProcessedVideosModal from "@/components/ProcessedVideosModal";
 import { VideoSettings as VideoSettingsType, ProcessedVideo } from "@/types/video";
 import { useToast } from "@/hooks/use-toast";
 
+const BACKEND_URL = "http://localhost:3000";
+
 const Index = () => {
   const [selectedVideoFrame, setSelectedVideoFrame] = useState<string>();
   const [videoSettings, setVideoSettings] = useState<Record<string, VideoSettingsType>>({});
@@ -21,33 +23,58 @@ const Index = () => {
   };
 
   const handleProcessVideos = async () => {
-    // This is a mock implementation. In a real application, you would:
-    // 1. Send the videos and their settings to your backend
-    // 2. Process the videos with FFmpeg
-    // 3. Return the processed video URLs
-    toast({
-      title: "Processing Videos",
-      description: "Your videos are being processed...",
-    });
+    try {
+      // Create FormData and append video files
+      const formData = new FormData();
+      
+      // Add video settings as JSON
+      formData.append('settings', JSON.stringify(videoSettings));
 
-    // Mock processed videos
-    const processed: ProcessedVideo[] = Object.entries(videoSettings).map(([id]) => ({
-      id,
-      name: `Processed Video ${id}`,
-      thumbnail: selectedVideoFrame || '',
-      url: '#',
-      selected: false,
-    }));
+      // Make the request to the backend
+      const response = await fetch(`${BACKEND_URL}/api/videos/process`, {
+        method: 'POST',
+        body: formData,
+      });
 
-    setProcessedVideos(processed);
-    setShowProcessedModal(true);
+      if (!response.ok) {
+        throw new Error('Failed to process videos');
+      }
+
+      const result = await response.json();
+
+      // Update processed videos with the results
+      const processed: ProcessedVideo[] = Object.entries(videoSettings).map(([id]) => ({
+        id,
+        name: `Processed Video ${id}`,
+        thumbnail: selectedVideoFrame || '',
+        url: result.processedVideoPath || '#',
+        selected: false,
+      }));
+
+      setProcessedVideos(processed);
+      setShowProcessedModal(true);
+
+    } catch (error) {
+      console.error('Error processing videos:', error);
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to process videos",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDownloadSelected = (videos: ProcessedVideo[]) => {
-    // Implement download functionality
     toast({
       title: "Downloading Videos",
       description: `Downloading ${videos.length} videos...`,
+    });
+    
+    // Implement download functionality for selected videos
+    videos.forEach(video => {
+      if (video.url && video.url !== '#') {
+        window.open(video.url, '_blank');
+      }
     });
   };
 
