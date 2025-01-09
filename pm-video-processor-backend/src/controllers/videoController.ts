@@ -14,7 +14,12 @@ const logger = winston.createLogger({
     winston.format.json()
   ),
   transports: [
-    new winston.transports.Console()
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
+    })
   ]
 });
 
@@ -33,11 +38,13 @@ export const processVideoHandler = async (
 
   try {
     logger.info('Starting video processing request', {
+      headers: req.headers,
       body: req.body,
       file: req.file
     });
 
     if (!req.file) {
+      logger.error('No video file uploaded');
       throw new AppError('No video file uploaded', 400);
     }
 
@@ -45,10 +52,15 @@ export const processVideoHandler = async (
     const stats = fs.statSync(req.file.path);
     const fileSizeInMB = stats.size / (1024 * 1024);
     
-    logger.info('File size check', { fileSizeInMB });
+    logger.info('File size check', { 
+      fileSizeInMB,
+      fileName: req.file.originalname,
+      mimeType: req.file.mimetype
+    });
 
     // Check if file is too large (25MB limit)
     if (fileSizeInMB > 25) {
+      logger.error('File size exceeds limit', { fileSizeInMB });
       throw new AppError('File size exceeds 25MB limit', 400);
     }
 
@@ -60,7 +72,9 @@ export const processVideoHandler = async (
     logger.info('Processing video with options', {
       logoPath,
       logoPosition,
-      effects
+      effects,
+      inputPath,
+      outputPath
     });
 
     processedVideoPath = await processVideo({
@@ -86,7 +100,7 @@ export const processVideoHandler = async (
 
     if (uploadError) {
       logger.error('Supabase upload error', uploadError);
-      throw new AppError('Failed to upload processed video', 500);
+      throw new AppError('Failed to upload processed video: ' + uploadError.message, 500);
     }
 
     // Get public URL for the uploaded video
@@ -114,6 +128,8 @@ export const processVideoHandler = async (
   } catch (error) {
     logger.error('Error in video processing', {
       error,
+      errorMessage: error instanceof Error ? error.message : 'Unknown error',
+      errorStack: error instanceof Error ? error.stack : undefined,
       inputPath,
       processedVideoPath
     });

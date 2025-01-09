@@ -49,12 +49,11 @@ const Index = () => {
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to process videos');
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || result.details || 'Failed to process videos');
+      }
 
       // Update processed videos with the results
       const processed: ProcessedVideo[] = [{
@@ -75,9 +74,19 @@ const Index = () => {
 
     } catch (error) {
       console.error('Error processing videos:', error);
+      
+      // Extract the most user-friendly error message
+      let errorMessage = 'Failed to process videos';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      // Show error toast with more detailed information
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to process videos",
+        description: errorMessage,
         variant: "destructive",
       });
     }

@@ -9,7 +9,12 @@ const logger = winston.createLogger({
     winston.format.json()
   ),
   transports: [
-    new winston.transports.Console()
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple()
+      )
+    })
   ]
 });
 
@@ -34,23 +39,41 @@ export const errorHandler: ErrorRequestHandler = (
     error: err,
     stack: err.stack,
     body: req.body,
+    query: req.query,
+    params: req.params,
     path: req.path,
-    method: req.method
+    method: req.method,
+    headers: req.headers
   });
 
   if (err instanceof AppError) {
     res.status(err.statusCode).json({
       status: 'error',
       message: err.message,
+      stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
     });
     return;
   }
 
   // Handle FFmpeg specific errors
   if (err.message && err.message.includes('FFmpeg')) {
+    const errorMessage = err.message.includes('SIGKILL') 
+      ? 'Video processing failed due to memory limits. Please try with a smaller video file or contact support.'
+      : 'Video processing failed. Please try with a different video file.';
+    
     res.status(500).json({
       status: 'error',
-      message: 'Video processing failed. Please try with a smaller video file.',
+      message: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
+    return;
+  }
+
+  // Handle multer errors
+  if (err.name === 'MulterError') {
+    res.status(400).json({
+      status: 'error',
+      message: 'File upload error',
       details: err.message
     });
     return;
@@ -59,6 +82,7 @@ export const errorHandler: ErrorRequestHandler = (
   res.status(500).json({
     status: 'error',
     message: 'Internal server error',
-    details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    details: process.env.NODE_ENV === 'development' ? err.message : undefined,
+    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined
   });
 };
