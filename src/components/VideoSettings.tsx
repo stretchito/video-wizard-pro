@@ -57,7 +57,6 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
       setIsProcessing(true);
       setProgress(0);
       
-      // Simulate progress while processing
       const progressInterval = setInterval(() => {
         setProgress(prev => {
           if (prev >= 90) {
@@ -70,7 +69,6 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
 
       await onProcess();
       
-      // Complete the progress bar
       clearInterval(progressInterval);
       setProgress(100);
       
