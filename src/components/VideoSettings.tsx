@@ -20,14 +20,14 @@ const VideoSettings = () => {
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
+      <LogoUpload onLogoUploaded={setLogoUrl} />
+      
       <div className="space-y-4">
         <LogoPreview 
           logoUrl={logoUrl}
           videoPreviewUrl={videoPreviewUrl}
           position={logoPosition}
         />
-        
-        <LogoUpload onLogoUploaded={setLogoUrl} />
         
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Logo Position</h3>
