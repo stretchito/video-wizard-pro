@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import FormatSelector from "./video-settings/FormatSelector";
 import PresetManager from "./video-settings/PresetManager";
 import LogoSection from "./video-settings/logo-section/LogoSection";
@@ -40,6 +41,7 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
     fadeEffect: { enabled: false, duration: 0.5 }
   });
   const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
   const { toast } = useToast();
 
   const handlePresetLoad = (preset: VideoPreset) => {
@@ -54,7 +56,25 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
   const handleProcess = async () => {
     try {
       setIsProcessing(true);
+      setProgress(0);
+      
+      // Simulate progress while processing
+      const progressInterval = setInterval(() => {
+        setProgress(prev => {
+          if (prev >= 90) {
+            clearInterval(progressInterval);
+            return 90;
+          }
+          return prev + 10;
+        });
+      }, 1000);
+
       await onProcess();
+      
+      // Complete the progress bar
+      clearInterval(progressInterval);
+      setProgress(100);
+      
       toast({
         title: "Success",
         description: "Videos processed successfully",
@@ -67,6 +87,7 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
       });
     } finally {
       setIsProcessing(false);
+      setProgress(0);
     }
   };
 
@@ -103,14 +124,23 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
         onPresetLoad={handlePresetLoad}
       />
 
-      <Button 
-        className="w-full" 
-        size="lg" 
-        onClick={handleProcess}
-        disabled={isProcessing}
-      >
-        {isProcessing ? "Processing..." : "Process Videos"}
-      </Button>
+      <div className="space-y-4">
+        {isProcessing ? (
+          <div className="space-y-2">
+            <Progress value={progress} className="w-full" />
+            <p className="text-sm text-gray-500 text-center">Processing video... {progress}%</p>
+          </div>
+        ) : (
+          <Button 
+            className="w-full" 
+            size="lg" 
+            onClick={handleProcess}
+            disabled={isProcessing}
+          >
+            Process Videos
+          </Button>
+        )}
+      </div>
     </div>
   );
 };
