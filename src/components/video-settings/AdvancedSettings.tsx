@@ -11,16 +11,105 @@ import {
 } from "@/components/ui/tooltip";
 
 const AdvancedSettings = () => {
-  const [colorWash, setColorWash] = useState("#9b87f5"); // Default purple color
+  const [colorWash, setColorWash] = useState("#9b87f5");
   const [colorIntensity, setColorIntensity] = useState([50]);
   const [desaturation, setDesaturation] = useState([0]);
+  const [logoX, setLogoX] = useState([10]); // percentage from left
+  const [logoY, setLogoY] = useState([10]); // percentage from top
+  const [logoRotation, setLogoRotation] = useState([0]); // degrees
 
   const handleColorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setColorWash(e.target.value);
   };
 
   return (
-    <div className="mt-4 space-y-4 border-t pt-4">
+    <div className="mt-4 space-y-4">
+      <div className="space-y-4 border-b pb-4">
+        <div className="flex items-center gap-2">
+          <h4 className="text-sm font-medium">Logo Position</h4>
+          <Tooltip>
+            <TooltipTrigger>
+              <Info className="h-4 w-4 text-gray-500" />
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Adjust the position and rotation of your logo</p>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label>Horizontal Position (X)</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Position from left edge of video</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Slider 
+              value={logoX}
+              onValueChange={setLogoX}
+              max={100} 
+              step={1}
+            />
+            <div className="text-xs text-gray-500 text-right">
+              {logoX}%
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label>Vertical Position (Y)</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Position from top edge of video</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Slider 
+              value={logoY}
+              onValueChange={setLogoY}
+              max={100} 
+              step={1}
+            />
+            <div className="text-xs text-gray-500 text-right">
+              {logoY}%
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <Label>Rotation</Label>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-gray-500" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Rotate your logo (in degrees)</p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
+            <Slider 
+              value={logoRotation}
+              onValueChange={setLogoRotation}
+              min={-180}
+              max={180} 
+              step={1}
+            />
+            <div className="text-xs text-gray-500 text-right">
+              {logoRotation}°
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <label className="text-sm font-medium">Brightness</label>
