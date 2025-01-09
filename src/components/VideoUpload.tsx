@@ -7,9 +7,10 @@ import { VideoSettings } from "@/types/video";
 interface VideoUploadProps {
   onFrameSelect: (frameUrl: string) => void;
   onSettingsChange: (videoId: string, settings: VideoSettings) => void;
+  onFilesAccepted: (files: File[]) => void;
 }
 
-const VideoUpload = ({ onFrameSelect, onSettingsChange }: VideoUploadProps) => {
+const VideoUpload = ({ onFrameSelect, onSettingsChange, onFilesAccepted }: VideoUploadProps) => {
   const [files, setFiles] = useState<(File & { 
     preview?: string;
     id?: string;
@@ -27,6 +28,7 @@ const VideoUpload = ({ onFrameSelect, onSettingsChange }: VideoUploadProps) => {
       })
     );
     setFiles(prev => [...prev, ...newFiles]);
+    onFilesAccepted(acceptedFiles);
     
     // If this is the first file, automatically select its frame
     if (files.length === 0 && newFiles.length > 0) {
@@ -54,15 +56,19 @@ const VideoUpload = ({ onFrameSelect, onSettingsChange }: VideoUploadProps) => {
         }
       });
     }
-  }, [files.length, handleFirstFrame, onSettingsChange]);
+  }, [files.length, handleFirstFrame, onSettingsChange, onFilesAccepted]);
 
   const handleRemove = useCallback((index: number) => {
-    setFiles(prev => prev.filter((_, i) => i !== index));
+    setFiles(prev => {
+      const newFiles = prev.filter((_, i) => i !== index);
+      onFilesAccepted(newFiles);
+      return newFiles;
+    });
     // If removing the last file, clear the preview
     if (files.length === 1) {
       handleFirstFrame('');
     }
-  }, [files.length, handleFirstFrame]);
+  }, [files.length, handleFirstFrame, onFilesAccepted]);
 
   return (
     <div className="space-y-6">

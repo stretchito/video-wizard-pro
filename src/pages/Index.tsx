@@ -13,6 +13,7 @@ const Index = () => {
   const [videoSettings, setVideoSettings] = useState<Record<string, VideoSettingsType>>({});
   const [processedVideos, setProcessedVideos] = useState<ProcessedVideo[]>([]);
   const [showProcessedModal, setShowProcessedModal] = useState(false);
+  const [videoFiles, setVideoFiles] = useState<File[]>([]);
   const { toast } = useToast();
 
   const handleSettingsChange = (videoId: string, settings: VideoSettingsType) => {
@@ -24,8 +25,17 @@ const Index = () => {
 
   const handleProcessVideos = async () => {
     try {
+      if (videoFiles.length === 0) {
+        throw new Error('Please upload at least one video file');
+      }
+
       // Create FormData and append video files
       const formData = new FormData();
+      
+      // Add each video file
+      videoFiles.forEach((file, index) => {
+        formData.append('video', file);
+      });
       
       // Add video settings as JSON
       formData.append('settings', JSON.stringify(videoSettings));
@@ -37,7 +47,8 @@ const Index = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to process videos');
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to process videos');
       }
 
       const result = await response.json();
@@ -78,6 +89,10 @@ const Index = () => {
     });
   };
 
+  const handleVideoUpload = (files: File[]) => {
+    setVideoFiles(files);
+  };
+
   return (
     <Layout>
       <div className="max-w-6xl mx-auto space-y-8">
@@ -93,6 +108,7 @@ const Index = () => {
             <VideoUpload 
               onFrameSelect={setSelectedVideoFrame}
               onSettingsChange={handleSettingsChange}
+              onFilesAccepted={handleVideoUpload}
             />
           </div>
           <div>
