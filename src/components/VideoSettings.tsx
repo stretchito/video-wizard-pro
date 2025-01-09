@@ -5,6 +5,7 @@ import PresetManager from "./video-settings/PresetManager";
 import LogoSection from "./video-settings/logo-section/LogoSection";
 import AdvancedSettingsPanel from "./video-settings/advanced-settings/AdvancedSettingsPanel";
 import { VideoPreset } from "@/types/preset";
+import { useToast } from "@/hooks/use-toast";
 
 interface VideoSettingsProps {
   videoPreviewUrl?: string;
@@ -38,10 +39,15 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
     stabilization: false,
     fadeEffect: { enabled: false, duration: 0.5 }
   });
+  const { toast } = useToast();
 
   const handlePresetLoad = (preset: VideoPreset) => {
     setLogoPosition(preset.logoPosition);
     setVideoEffects(preset.videoEffects);
+    toast({
+      title: "Preset Loaded",
+      description: `Successfully loaded preset: ${preset.name}`,
+    });
   };
 
   return (

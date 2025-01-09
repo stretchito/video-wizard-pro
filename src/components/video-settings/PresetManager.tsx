@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { VideoPreset } from "@/types/preset";
 import {
   Dialog,
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 interface PresetManagerProps {
   currentSettings: Omit<VideoPreset, 'id' | 'name'>;
@@ -25,15 +26,40 @@ interface PresetManagerProps {
 }
 
 const PresetManager = ({ currentSettings, onPresetLoad, saveOnly = false }: PresetManagerProps) => {
-  const [presets, setPresets] = useState<VideoPreset[]>(() => {
-    const savedPresets = localStorage.getItem('videoPresets');
-    return savedPresets ? JSON.parse(savedPresets) : [];
-  });
+  const [presets, setPresets] = useState<VideoPreset[]>([]);
   const [newPresetName, setNewPresetName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const savePreset = () => {
+  useEffect(() => {
+    loadPresets();
+  }, []);
+
+  const loadPresets = async () => {
+    const { data, error } = await supabase
+      .from('processing_presets')
+      .select('*');
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load presets",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (data) {
+      setPresets(data.map(preset => ({
+        id: preset.id,
+        name: preset.name,
+        logoPosition: preset.settings.logoPosition,
+        videoEffects: preset.settings.videoEffects,
+      })));
+    }
+  };
+
+  const savePreset = async () => {
     if (!newPresetName.trim()) {
       toast({
         title: "Error",
@@ -43,33 +69,36 @@ const PresetManager = ({ currentSettings, onPresetLoad, saveOnly = false }: Pres
       return;
     }
 
-    const newPreset: VideoPreset = {
-      id: crypto.randomUUID(),
-      name: newPresetName,
-      ...currentSettings,
-    };
+    const { error } = await supabase
+      .from('processing_presets')
+      .insert({
+        name: newPresetName,
+        settings: currentSettings,
+      });
 
-    const updatedPresets = [...presets, newPreset];
-    setPresets(updatedPresets);
-    localStorage.setItem('videoPresets', JSON.stringify(updatedPresets));
-    
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save preset",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Success",
       description: "Preset saved successfully",
     });
-    
+
     setNewPresetName("");
     setIsDialogOpen(false);
+    loadPresets();
   };
 
-  const handlePresetSelect = (presetId: string) => {
+  const handlePresetSelect = async (presetId: string) => {
     const preset = presets.find(p => p.id === presetId);
     if (preset) {
       onPresetLoad(preset);
-      toast({
-        title: "Preset Loaded",
-        description: `Loaded preset: ${preset.name}`,
-      });
     }
   };
 
