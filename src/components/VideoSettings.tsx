@@ -1,12 +1,9 @@
-import { useState, useEffect } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import LogoUpload from "./video-settings/LogoUpload";
 import FormatSelector from "./video-settings/FormatSelector";
-import AdvancedSettings from "./video-settings/AdvancedSettings";
-import LogoPreview from "./video-settings/logo-controls/LogoPreview";
-import LogoControls from "./video-settings/logo-controls/LogoControls";
 import PresetManager from "./video-settings/PresetManager";
+import LogoSection from "./video-settings/logo-section/LogoSection";
+import AdvancedSettingsPanel from "./video-settings/advanced-settings/AdvancedSettingsPanel";
 import { VideoPreset } from "@/types/preset";
 
 interface VideoSettingsProps {
@@ -25,7 +22,6 @@ interface VideoEffects {
 }
 
 const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
-  const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [logoPosition, setLogoPosition] = useState({
     x: 50,
     y: 50,
@@ -50,9 +46,6 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
-      <LogoUpload onLogoUploaded={setLogoUrl} />
-      
-      {/* Preset selector moved to top level */}
       <div className="space-y-2">
         <PresetManager
           currentSettings={{
@@ -63,59 +56,26 @@ const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
         />
       </div>
       
-      <div className="space-y-4">
-        <LogoPreview 
-          logoUrl={logoUrl}
-          videoPreviewUrl={videoPreviewUrl}
-          position={logoPosition}
-          videoEffects={videoEffects}
-        />
-        
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Logo Position</h3>
-          <LogoControls
-            position={logoPosition}
-            onPositionChange={setLogoPosition}
-          />
-        </div>
-      </div>
+      <LogoSection
+        logoUrl={logoUrl}
+        videoPreviewUrl={videoPreviewUrl}
+        logoPosition={logoPosition}
+        videoEffects={videoEffects}
+        onLogoUploaded={setLogoUrl}
+        onPositionChange={setLogoPosition}
+      />
 
       <div className="space-y-4">
         <h3 className="text-lg font-medium">Basic Settings</h3>
         <FormatSelector />
       </div>
 
-      <div>
-        <button
-          onClick={() => setIsAdvancedOpen(!isAdvancedOpen)}
-          className="flex items-center space-x-2 text-sm text-gray-600 hover:text-primary"
-        >
-          {isAdvancedOpen ? (
-            <ChevronUp size={16} />
-          ) : (
-            <ChevronDown size={16} />
-          )}
-          <span>Advanced Settings</span>
-        </button>
-
-        {isAdvancedOpen && (
-          <div className="space-y-4">
-            <AdvancedSettings 
-              effects={videoEffects}
-              onEffectsChange={setVideoEffects}
-            />
-            {/* Save As Preset button moved inside Advanced Settings */}
-            <PresetManager
-              currentSettings={{
-                logoPosition,
-                videoEffects,
-              }}
-              onPresetLoad={handlePresetLoad}
-              saveOnly
-            />
-          </div>
-        )}
-      </div>
+      <AdvancedSettingsPanel
+        effects={videoEffects}
+        onEffectsChange={setVideoEffects}
+        logoPosition={logoPosition}
+        onPresetLoad={handlePresetLoad}
+      />
 
       <Button className="w-full" size="lg" onClick={onProcess}>
         Process Videos
