@@ -54,16 +54,21 @@ const Index = () => {
       const result = await response.json();
 
       // Update processed videos with the results
-      const processed: ProcessedVideo[] = Object.entries(videoSettings).map(([id]) => ({
-        id,
-        name: `Processed Video ${id}`,
+      const processed: ProcessedVideo[] = [{
+        id: crypto.randomUUID(),
+        name: result.data.fileName || 'Processed Video',
         thumbnail: selectedVideoFrame || '',
-        url: result.processedVideoPath || '#',
+        url: result.data.processedVideoPath,
         selected: false,
-      }));
+      }];
 
       setProcessedVideos(processed);
       setShowProcessedModal(true);
+
+      toast({
+        title: "Success",
+        description: "Video processed successfully",
+      });
 
     } catch (error) {
       console.error('Error processing videos:', error);
@@ -81,10 +86,15 @@ const Index = () => {
       description: `Downloading ${videos.length} videos...`,
     });
     
-    // Implement download functionality for selected videos
     videos.forEach(video => {
-      if (video.url && video.url !== '#') {
-        window.open(video.url, '_blank');
+      if (video.url) {
+        // Create a temporary anchor element to trigger the download
+        const link = document.createElement('a');
+        link.href = video.url;
+        link.download = video.name;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
     });
   };
