@@ -20,6 +20,11 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
     size: 15
   });
   const [logoUrl, setLogoUrl] = useState<string>();
+  const [colorWash, setColorWash] = useState({
+    enabled: false,
+    color: "#000000",
+    intensity: 50
+  });
 
   return (
     <div className="space-y-6 bg-white p-6 rounded-lg shadow-sm">
@@ -30,6 +35,7 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
           logoUrl={logoUrl}
           videoPreviewUrl={videoPreviewUrl}
           position={logoPosition}
+          colorWash={colorWash}
         />
         
         <div className="space-y-4">
@@ -59,7 +65,11 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
           <span>Advanced Settings</span>
         </button>
 
-        {isAdvancedOpen && <AdvancedSettings />}
+        {isAdvancedOpen && (
+          <AdvancedSettings 
+            onColorWashChange={(colorWashSettings) => setColorWash(colorWashSettings)}
+          />
+        )}
       </div>
 
       <Button className="w-full" size="lg">

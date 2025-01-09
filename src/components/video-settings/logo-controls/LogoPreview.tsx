@@ -20,7 +20,6 @@ interface LogoPreviewProps {
 const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPreviewProps) => {
   const [safeZoneVisible, setSafeZoneVisible] = useState(true);
 
-  // Calculate logo position based on safe zones
   const getLogoStyle = () => {
     const style: React.CSSProperties = {
       position: 'absolute',
@@ -30,7 +29,7 @@ const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPrev
       top: `${position.y}%`,
       maxWidth: '20%',
       transition: 'all 0.2s ease-out',
-      zIndex: 30, // Place logo above color wash
+      zIndex: 30,
     };
     return style;
   };
@@ -42,39 +41,30 @@ const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPrev
       inset: 0,
       backgroundColor: colorWash.color,
       opacity: colorWash.intensity / 100,
-      zIndex: 20, // Place color wash between video and logo
+      zIndex: 20,
+      pointerEvents: 'none',
     } as React.CSSProperties;
   };
 
   return (
     <div className="relative w-full max-w-[360px] mx-auto aspect-[9/16] bg-gray-900 rounded-[3rem] p-3 shadow-xl">
       <div className="relative w-full h-full overflow-hidden rounded-[2.5rem] bg-black">
-        {/* Video Preview Frame */}
+        {/* Video Preview Frame (z-index: 10) */}
         {videoPreviewUrl && (
           <img 
             src={videoPreviewUrl} 
             alt="Video preview"
-            className="absolute inset-0 w-full h-full object-cover z-10"
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{ zIndex: 10 }}
           />
         )}
 
-        {/* Color Wash Layer */}
+        {/* Color Wash Layer (z-index: 20) */}
         {colorWash?.enabled && (
           <div style={getColorWashStyle()} />
         )}
 
-        {/* Safe Zones */}
-        {safeZoneVisible && (
-          <>
-            {/* Stories Safe Zone */}
-            <div className="absolute inset-x-0 top-[13%] h-[74%] border-2 border-blue-500/20 pointer-events-none z-40" />
-            
-            {/* Reels Safe Zone */}
-            <div className="absolute inset-x-[5.5%] top-[5.6%] bottom-[16.7%] border-2 border-green-500/20 pointer-events-none z-40" />
-          </>
-        )}
-
-        {/* Logo */}
+        {/* Logo (z-index: 30) */}
         {logoUrl && (
           <img
             src={logoUrl}
@@ -83,9 +73,16 @@ const LogoPreview = ({ logoUrl, videoPreviewUrl, position, colorWash }: LogoPrev
             className="pointer-events-none"
           />
         )}
+
+        {/* Safe Zones (z-index: 40) */}
+        {safeZoneVisible && (
+          <>
+            <div className="absolute inset-x-0 top-[13%] h-[74%] border-2 border-blue-500/20 pointer-events-none" style={{ zIndex: 40 }} />
+            <div className="absolute inset-x-[5.5%] top-[5.6%] bottom-[16.7%] border-2 border-green-500/20 pointer-events-none" style={{ zIndex: 40 }} />
+          </>
+        )}
       </div>
 
-      {/* Safe Zone Toggle */}
       <button
         onClick={() => setSafeZoneVisible(!safeZoneVisible)}
         className="absolute -right-20 top-0 text-xs text-gray-500 hover:text-gray-700"
