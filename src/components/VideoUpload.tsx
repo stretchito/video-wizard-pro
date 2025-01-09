@@ -52,7 +52,7 @@ const VideoUpload = ({ onFrameSelect }: VideoUploadProps) => {
 
   return (
     <div className="space-y-6">
-      <UploadZone onUpload={handleUpload} />
+      <UploadZone onFilesAccepted={handleUpload} />
       
       {files.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
