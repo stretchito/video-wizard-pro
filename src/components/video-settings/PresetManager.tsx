@@ -53,8 +53,8 @@ const PresetManager = ({ currentSettings, onPresetLoad, saveOnly = false }: Pres
       setPresets(data.map(preset => ({
         id: preset.id,
         name: preset.name,
-        logoPosition: preset.settings.logoPosition,
-        videoEffects: preset.settings.videoEffects,
+        logoPosition: (preset.settings as any).logoPosition,
+        videoEffects: (preset.settings as any).videoEffects,
       })));
     }
   };
@@ -69,11 +69,23 @@ const PresetManager = ({ currentSettings, onPresetLoad, saveOnly = false }: Pres
       return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to save presets",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const { error } = await supabase
       .from('processing_presets')
       .insert({
         name: newPresetName,
         settings: currentSettings,
+        user_id: user.id
       });
 
     if (error) {
