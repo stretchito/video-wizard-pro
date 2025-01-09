@@ -1,13 +1,19 @@
 import { useState, useCallback } from "react";
+import { v4 as uuidv4 } from "uuid";
 import UploadZone from "./video-upload/UploadZone";
 import VideoPreview from "./video-upload/VideoPreview";
+import { VideoSettings } from "@/types/video";
 
 interface VideoUploadProps {
   onFrameSelect: (frameUrl: string) => void;
+  onSettingsChange: (videoId: string, settings: VideoSettings) => void;
 }
 
-const VideoUpload = ({ onFrameSelect }: VideoUploadProps) => {
-  const [files, setFiles] = useState<(File & { preview?: string })[]>([]);
+const VideoUpload = ({ onFrameSelect, onSettingsChange }: VideoUploadProps) => {
+  const [files, setFiles] = useState<(File & { 
+    preview?: string;
+    id?: string;
+  })[]>([]);
 
   const handleFirstFrame = useCallback((frameUrl: string) => {
     onFrameSelect(frameUrl);
@@ -16,7 +22,8 @@ const VideoUpload = ({ onFrameSelect }: VideoUploadProps) => {
   const handleUpload = useCallback((acceptedFiles: File[]) => {
     const newFiles = acceptedFiles.map(file => 
       Object.assign(file, {
-        preview: URL.createObjectURL(file)
+        preview: URL.createObjectURL(file),
+        id: uuidv4()
       })
     );
     setFiles(prev => [...prev, ...newFiles]);
@@ -37,10 +44,17 @@ const VideoUpload = ({ onFrameSelect }: VideoUploadProps) => {
           ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
           const frameUrl = canvas.toDataURL('image/jpeg');
           handleFirstFrame(frameUrl);
+          
+          // Initialize settings for the new video
+          if (newFiles[0].id) {
+            onSettingsChange(newFiles[0].id, {
+              id: newFiles[0].id,
+            });
+          }
         }
       });
     }
-  }, [files.length, handleFirstFrame]);
+  }, [files.length, handleFirstFrame, onSettingsChange]);
 
   const handleRemove = useCallback((index: number) => {
     setFiles(prev => prev.filter((_, i) => i !== index));
