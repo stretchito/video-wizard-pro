@@ -32,26 +32,36 @@ export const processVideo = async (options: VideoProcessingOptions): Promise<str
   } = options;
 
   return new Promise((resolve, reject) => {
-    let command = ffmpeg(inputPath);
+    let command = ffmpeg(inputPath)
+      // Add memory optimization flags
+      .outputOptions([
+        '-max_muxing_queue_size 1024',
+        '-y', // Overwrite output files without asking
+        '-preset ultrafast', // Use fastest encoding preset
+        '-movflags +faststart', // Optimize for web playback
+        '-maxrate 2M', // Limit bitrate to 2 Mbps
+        '-bufsize 4M', // Use a 4MB buffer
+      ]);
 
     // Apply effects if specified
     if (effects) {
       const filters: string[] = [];
       
       if (effects.brightness !== undefined) {
-        filters.push(`brightness=${effects.brightness}`);
+        filters.push(`eq=brightness=${effects.brightness/100}`);
       }
       
       if (effects.contrast !== undefined) {
-        filters.push(`contrast=${effects.contrast}`);
+        filters.push(`eq=contrast=${effects.contrast/100}`);
       }
       
       if (effects.saturation !== undefined) {
-        filters.push(`saturation=${effects.saturation}`);
+        filters.push(`eq=saturation=${effects.saturation/100}`);
       }
       
-      if (effects.zoom !== undefined) {
-        filters.push(`scale=iw*${effects.zoom}:ih*${effects.zoom}`);
+      if (effects.zoom !== undefined && effects.zoom !== 100) {
+        const scale = effects.zoom / 100;
+        filters.push(`scale=iw*${scale}:ih*${scale}`);
       }
 
       if (filters.length > 0) {
@@ -68,10 +78,18 @@ export const processVideo = async (options: VideoProcessingOptions): Promise<str
     }
 
     command
+      .on('start', (commandLine) => {
+        console.log('FFmpeg processing started:', commandLine);
+      })
+      .on('progress', (progress) => {
+        console.log('Processing: ' + Math.floor(progress.percent || 0) + '% done');
+      })
       .on('end', () => {
+        console.log('FFmpeg processing completed');
         resolve(outputPath);
       })
       .on('error', (err) => {
+        console.error('FFmpeg error:', err);
         reject(new Error(`FFmpeg error: ${err.message}`));
       })
       .save(outputPath);

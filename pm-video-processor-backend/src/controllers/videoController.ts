@@ -15,17 +15,29 @@ export const processVideoHandler = async (
   res: Response,
   next: NextFunction
 ) => {
+  let inputPath: string | undefined;
+  let processedVideoPath: string | undefined;
+
   try {
     if (!req.file) {
       throw new AppError('No video file uploaded', 400);
     }
 
-    const inputPath = req.file.path;
+    // Get file size
+    const stats = fs.statSync(req.file.path);
+    const fileSizeInMB = stats.size / (1024 * 1024);
+    
+    // Check if file is too large (25MB limit)
+    if (fileSizeInMB > 25) {
+      throw new AppError('File size exceeds 25MB limit', 400);
+    }
+
+    inputPath = req.file.path;
     const outputPath = path.join('tmp/processed', `processed-${Date.now()}.mp4`);
     
     const { logoPath, logoPosition, effects } = req.body;
 
-    const processedVideoPath = await processVideo({
+    processedVideoPath = await processVideo({
       inputPath,
       outputPath,
       logoPath,
@@ -54,8 +66,12 @@ export const processVideoHandler = async (
       .getPublicUrl(`processed/${fileName}`);
 
     // Clean up temporary files
-    fs.unlinkSync(inputPath);
-    fs.unlinkSync(processedVideoPath);
+    if (inputPath && fs.existsSync(inputPath)) {
+      fs.unlinkSync(inputPath);
+    }
+    if (processedVideoPath && fs.existsSync(processedVideoPath)) {
+      fs.unlinkSync(processedVideoPath);
+    }
 
     res.json({
       status: 'success',
@@ -65,6 +81,18 @@ export const processVideoHandler = async (
       },
     });
   } catch (error) {
+    // Clean up temporary files in case of error
+    try {
+      if (inputPath && fs.existsSync(inputPath)) {
+        fs.unlinkSync(inputPath);
+      }
+      if (processedVideoPath && fs.existsSync(processedVideoPath)) {
+        fs.unlinkSync(processedVideoPath);
+      }
+    } catch (cleanupError) {
+      console.error('Error cleaning up temporary files:', cleanupError);
+    }
+    
     next(error);
   }
 };
