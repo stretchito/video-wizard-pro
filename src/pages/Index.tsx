@@ -7,7 +7,7 @@ import { VideoSettings as VideoSettingsType, ProcessedVideo } from "@/types/vide
 import { useToast } from "@/hooks/use-toast";
 
 // Use environment variable for backend URL with a fallback
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
+const BACKEND_URL = "https://dreadnought-video-processor-backend.onrender.com";
 
 const Index = () => {
   const [selectedVideoFrame, setSelectedVideoFrame] = useState<string>();
