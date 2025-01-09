@@ -4,10 +4,8 @@ import VideoUpload from "@/components/VideoUpload";
 import VideoSettings from "@/components/VideoSettings";
 import ProcessedVideosModal from "@/components/ProcessedVideosModal";
 import { VideoSettings as VideoSettingsType, ProcessedVideo } from "@/types/video";
-import { useToast } from "@/hooks/use-toast";
-
-// Use environment variable for backend URL with a fallback
-const BACKEND_URL = "https://dreadnought-video-processor-backend.onrender.com";
+import { useVideoProcessor } from "@/components/video-processing/VideoProcessor";
+import { useVideoDownloader } from "@/components/video-processing/VideoDownloader";
 
 const Index = () => {
   const [selectedVideoFrame, setSelectedVideoFrame] = useState<string>();
@@ -15,104 +13,23 @@ const Index = () => {
   const [processedVideos, setProcessedVideos] = useState<ProcessedVideo[]>([]);
   const [showProcessedModal, setShowProcessedModal] = useState(false);
   const [videoFiles, setVideoFiles] = useState<File[]>([]);
-  const { toast } = useToast();
+
+  const { downloadSelectedVideos } = useVideoDownloader();
+  const { processVideos } = useVideoProcessor({
+    videoFiles,
+    videoSettings,
+    selectedVideoFrame,
+    onProcessingComplete: (videos) => {
+      setProcessedVideos(videos);
+      setShowProcessedModal(true);
+    },
+  });
 
   const handleSettingsChange = (videoId: string, settings: VideoSettingsType) => {
     setVideoSettings(prev => ({
       ...prev,
       [videoId]: settings
     }));
-  };
-
-  const handleProcessVideos = async () => {
-    try {
-      if (videoFiles.length === 0) {
-        throw new Error('Please upload at least one video file');
-      }
-
-      // Create FormData and append video files
-      const formData = new FormData();
-      
-      // Add each video file
-      videoFiles.forEach((file, index) => {
-        formData.append('video', file);
-      });
-      
-      // Add video settings as JSON
-      formData.append('settings', JSON.stringify(videoSettings));
-
-      console.log('Making request to:', `${BACKEND_URL}/api/videos/process`);
-      
-      // Make the request to the backend
-      const response = await fetch(`${BACKEND_URL}/api/videos/process`, {
-        method: 'POST',
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || result.details || 'Failed to process videos');
-      }
-
-      // Update processed videos with the results
-      const processed: ProcessedVideo[] = [{
-        id: crypto.randomUUID(),
-        name: result.data.fileName || 'Processed Video',
-        thumbnail: selectedVideoFrame || '',
-        url: result.data.processedVideoPath,
-        selected: false,
-      }];
-
-      setProcessedVideos(processed);
-      setShowProcessedModal(true);
-
-      toast({
-        title: "Success",
-        description: "Video processed successfully",
-      });
-
-    } catch (error) {
-      console.error('Error processing videos:', error);
-      
-      // Extract the most user-friendly error message
-      let errorMessage = 'Failed to process videos';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-      }
-      
-      // Show error toast with more detailed information
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
-
-  const handleDownloadSelected = (videos: ProcessedVideo[]) => {
-    toast({
-      title: "Downloading Videos",
-      description: `Downloading ${videos.length} videos...`,
-    });
-    
-    videos.forEach(video => {
-      if (video.url) {
-        // Create a temporary anchor element to trigger the download
-        const link = document.createElement('a');
-        link.href = video.url;
-        link.download = video.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    });
-  };
-
-  const handleVideoUpload = (files: File[]) => {
-    setVideoFiles(files);
   };
 
   return (
@@ -130,13 +47,13 @@ const Index = () => {
             <VideoUpload 
               onFrameSelect={setSelectedVideoFrame}
               onSettingsChange={handleSettingsChange}
-              onFilesAccepted={handleVideoUpload}
+              onFilesAccepted={setVideoFiles}
             />
           </div>
           <div>
             <VideoSettings 
               videoPreviewUrl={selectedVideoFrame}
-              onProcess={handleProcessVideos}
+              onProcess={processVideos}
             />
           </div>
         </div>
@@ -145,7 +62,7 @@ const Index = () => {
           videos={processedVideos}
           open={showProcessedModal}
           onOpenChange={setShowProcessedModal}
-          onDownloadSelected={handleDownloadSelected}
+          onDownloadSelected={downloadSelectedVideos}
         />
       </div>
     </Layout>
