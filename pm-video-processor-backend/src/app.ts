@@ -21,6 +21,7 @@ app.use(errorHandler);
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
+  console.log(`Environment PORT value: ${process.env.PORT}`);
 });
 
 export default app;
