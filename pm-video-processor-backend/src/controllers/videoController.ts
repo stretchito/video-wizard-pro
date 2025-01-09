@@ -4,6 +4,19 @@ import { AppError } from '../middleware/errorHandler';
 import path from 'path';
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
+import winston from 'winston';
+
+// Configure winston logger
+const logger = winston.createLogger({
+  level: 'info',
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json()
+  ),
+  transports: [
+    new winston.transports.Console()
+  ]
+});
 
 const supabase = createClient(
   process.env.SUPABASE_URL || '',
@@ -19,6 +32,11 @@ export const processVideoHandler = async (
   let processedVideoPath: string | undefined;
 
   try {
+    logger.info('Starting video processing request', {
+      body: req.body,
+      file: req.file
+    });
+
     if (!req.file) {
       throw new AppError('No video file uploaded', 400);
     }
@@ -27,6 +45,8 @@ export const processVideoHandler = async (
     const stats = fs.statSync(req.file.path);
     const fileSizeInMB = stats.size / (1024 * 1024);
     
+    logger.info('File size check', { fileSizeInMB });
+
     // Check if file is too large (25MB limit)
     if (fileSizeInMB > 25) {
       throw new AppError('File size exceeds 25MB limit', 400);
@@ -37,6 +57,12 @@ export const processVideoHandler = async (
     
     const { logoPath, logoPosition, effects } = req.body;
 
+    logger.info('Processing video with options', {
+      logoPath,
+      logoPosition,
+      effects
+    });
+
     processedVideoPath = await processVideo({
       inputPath,
       outputPath,
@@ -44,6 +70,8 @@ export const processVideoHandler = async (
       logoPosition: logoPosition ? JSON.parse(logoPosition) : undefined,
       effects: effects ? JSON.parse(effects) : undefined,
     });
+
+    logger.info('Video processed successfully, uploading to Supabase');
 
     // Upload processed video to Supabase storage
     const fileStream = fs.createReadStream(processedVideoPath);
@@ -57,6 +85,7 @@ export const processVideoHandler = async (
       });
 
     if (uploadError) {
+      logger.error('Supabase upload error', uploadError);
       throw new AppError('Failed to upload processed video', 500);
     }
 
@@ -64,6 +93,8 @@ export const processVideoHandler = async (
     const { data: { publicUrl } } = supabase.storage
       .from('videos')
       .getPublicUrl(`processed/${fileName}`);
+
+    logger.info('Upload successful, cleaning up temporary files');
 
     // Clean up temporary files
     if (inputPath && fs.existsSync(inputPath)) {
@@ -81,6 +112,12 @@ export const processVideoHandler = async (
       },
     });
   } catch (error) {
+    logger.error('Error in video processing', {
+      error,
+      inputPath,
+      processedVideoPath
+    });
+
     // Clean up temporary files in case of error
     try {
       if (inputPath && fs.existsSync(inputPath)) {
@@ -90,7 +127,7 @@ export const processVideoHandler = async (
         fs.unlinkSync(processedVideoPath);
       }
     } catch (cleanupError) {
-      console.error('Error cleaning up temporary files:', cleanupError);
+      logger.error('Error cleaning up temporary files:', cleanupError);
     }
     
     next(error);
