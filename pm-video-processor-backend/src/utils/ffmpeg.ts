@@ -53,14 +53,17 @@ export const processVideo = async (options: VideoProcessingOptions): Promise<str
 
   return new Promise((resolve, reject) => {
     let command = ffmpeg(inputPath)
-      // Add memory optimization flags
+      // Add aggressive memory optimization flags
       .outputOptions([
         '-max_muxing_queue_size 1024',
         '-y', // Overwrite output files without asking
         '-preset ultrafast', // Use fastest encoding preset
         '-movflags +faststart', // Optimize for web playback
-        '-maxrate 2M', // Limit bitrate to 2 Mbps
-        '-bufsize 4M', // Use a 4MB buffer
+        '-maxrate 1M', // Limit bitrate to 1 Mbps (reduced from 2M)
+        '-bufsize 2M', // Use a 2MB buffer (reduced from 4M)
+        '-threads 1', // Limit to single thread to reduce memory usage
+        '-vf scale=w=min(1280\\,iw):h=min(720\\,ih):force_original_aspect_ratio=decrease', // Limit resolution
+        '-crf 28', // Increase compression (23-28 is a good range, higher = more compression)
       ]);
 
     // Apply effects if specified
@@ -117,7 +120,13 @@ export const processVideo = async (options: VideoProcessingOptions): Promise<str
         resolve(outputPath);
       })
       .on('error', (err) => {
-        logger.error('FFmpeg error:', err);
+        logger.error('FFmpeg error:', {
+          error: err,
+          message: err.message,
+          stack: err.stack,
+          inputPath,
+          outputPath
+        });
         reject(new Error(`FFmpeg error: ${err.message}`));
       })
       .save(outputPath);
