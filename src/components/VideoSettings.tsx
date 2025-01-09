@@ -11,6 +11,7 @@ import { VideoPreset } from "@/types/preset";
 
 interface VideoSettingsProps {
   videoPreviewUrl?: string;
+  onProcess: () => Promise<void>;
 }
 
 interface VideoEffects {
@@ -23,7 +24,7 @@ interface VideoEffects {
   fadeEffect?: { enabled: boolean; duration: number };
 }
 
-const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
+const VideoSettings = ({ videoPreviewUrl, onProcess }: VideoSettingsProps) => {
   const [isAdvancedOpen, setIsAdvancedOpen] = useState(false);
   const [logoPosition, setLogoPosition] = useState({
     x: 50,
@@ -102,7 +103,7 @@ const VideoSettings = ({ videoPreviewUrl }: VideoSettingsProps) => {
         )}
       </div>
 
-      <Button className="w-full" size="lg">
+      <Button className="w-full" size="lg" onClick={onProcess}>
         Process Videos
       </Button>
     </div>
