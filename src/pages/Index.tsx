@@ -6,7 +6,8 @@ import ProcessedVideosModal from "@/components/ProcessedVideosModal";
 import { VideoSettings as VideoSettingsType, ProcessedVideo } from "@/types/video";
 import { useToast } from "@/hooks/use-toast";
 
-const BACKEND_URL = "http://localhost:3000";
+// Use environment variable for backend URL with a fallback
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:3000";
 
 const Index = () => {
   const [selectedVideoFrame, setSelectedVideoFrame] = useState<string>();
@@ -40,6 +41,8 @@ const Index = () => {
       // Add video settings as JSON
       formData.append('settings', JSON.stringify(videoSettings));
 
+      console.log('Making request to:', `${BACKEND_URL}/api/videos/process`);
+      
       // Make the request to the backend
       const response = await fetch(`${BACKEND_URL}/api/videos/process`, {
         method: 'POST',
