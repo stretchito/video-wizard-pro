@@ -20,7 +20,11 @@ app.use(express.json());
 
 // Health check endpoint for Render
 app.get('/', (req, res) => {
-  res.status(200).json({ status: 'ok' });
+  res.status(200).json({ 
+    status: 'ok',
+    service: 'video-processor-api',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Routes
