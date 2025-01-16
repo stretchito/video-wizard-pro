@@ -41,13 +41,13 @@ jobs:
           echo "Setting up SSH directory..."
           ls -la ~/.ssh || true
           
-          echo "Writing deploy key..."
-          echo "${{ secrets.DEPLOY_KEY }}" > ~/.ssh/deploy_key
+          # Ensure proper line endings and remove any extra whitespace
+          echo "${{ secrets.DEPLOY_KEY }}" | tr -d '\r' > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           ls -la ~/.ssh/deploy_key
           
-          echo "Writing known hosts..."
-          echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          # Ensure known_hosts has proper format
+          echo "${{ secrets.KNOWN_HOSTS }}" | tr -d '\r' > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
           ls -la ~/.ssh/known_hosts
           
@@ -60,6 +60,9 @@ jobs:
           
           echo "Final SSH directory contents:"
           ls -la ~/.ssh/
+          
+          echo "Key content format check:"
+          head -n 1 ~/.ssh/deploy_key
 
       - name: Test SSH Connection
         run: ssh -v -i ~/.ssh/deploy_key nodejs@${{ secrets.DROPLET_IP }} 'echo "SSH connection successful"'
