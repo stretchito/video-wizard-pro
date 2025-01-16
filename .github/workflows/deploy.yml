@@ -41,11 +41,16 @@ jobs:
           chmod 600 ~/.ssh/deploy_key
           echo "${{ secrets.KNOWN_HOSTS }}" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
+          ssh-keygen -l -f ~/.ssh/deploy_key || exit 1  # Verify key is valid
+
+      - name: Debug SSH Connection
+        run: |
+          ssh -v -i ~/.ssh/deploy_key nodejs@161.35.137.136 'echo "SSH connection successful"'
 
       - name: Deploy to DigitalOcean
         run: |
           rsync -avz --delete \
-            -e "ssh -i ~/.ssh/deploy_key" \
+            -e "ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes" \
             --exclude='.git*' \
             --exclude='node_modules' \
             --exclude='.env' \
