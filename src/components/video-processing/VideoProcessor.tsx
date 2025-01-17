@@ -33,7 +33,7 @@ export const useVideoProcessor = ({
       });
       formData.append('settings', JSON.stringify(videoSettings));
 
-      // Ensure proper URL construction
+      // Ensure proper URL construction with explicit path
       const apiUrl = new URL('/api/videos/process', API_CONFIG.BASE_URL).toString();
       console.log('Making request to:', apiUrl);
       
