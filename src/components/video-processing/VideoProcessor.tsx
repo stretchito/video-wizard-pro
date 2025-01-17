@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { VideoSettings, ProcessedVideo } from "@/types/video";
-import { useToast } from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";  // Updated import path
 import { API_CONFIG } from "@/config/api";
 
 interface VideoProcessorProps {
@@ -33,7 +33,6 @@ export const useVideoProcessor = ({
       });
       formData.append('settings', JSON.stringify(videoSettings));
 
-      // Ensure proper URL construction with explicit path
       const apiUrl = new URL('/api/videos/process', API_CONFIG.BASE_URL).toString();
       console.log('Making request to:', apiUrl);
       
