@@ -1,8 +1,9 @@
-const API_CONFIG = {
-  // Default to production backend unless explicitly set to use local
-  BASE_URL: import.meta.env.VITE_USE_LOCAL_BACKEND === 'true'
-    ? 'http://localhost:10000'        // Local development backend
-    : 'https://161.35.137.136:10000'   // Production backend (now using HTTPS)
-} as const;
+interface ApiConfig {
+  BASE_URL: string;
+}
 
-export { API_CONFIG };
+export const API_CONFIG: ApiConfig = {
+  BASE_URL: import.meta.env.VITE_USE_LOCAL_BACKEND === 'true'
+    ? 'http://localhost:10000'
+    : 'https://161.35.137.136:10000'
+};
