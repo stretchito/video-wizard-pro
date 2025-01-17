@@ -61,14 +61,20 @@ jobs:
             ls -la
             echo "Installing production dependencies..."
             npm ci --omit=dev
+            echo "Checking if port 10000 is in use..."
+            netstat -tulpn | grep 10000 || echo "Port 10000 is free"
             echo "Starting/Reloading PM2..."
             pm2 reload ecosystem.config.js --update-env || pm2 start ecosystem.config.js
+            echo "Waiting for application to start..."
+            sleep 10
             echo "PM2 status:"
             pm2 status
             echo "PM2 logs:"
             pm2 logs --lines 20
             echo "Checking if application is running:"
-            curl -v http://localhost:10000
+            curl -v http://localhost:10000 || echo "Failed to connect to application"
+            echo "Checking firewall status:"
+            sudo ufw status | grep 10000 || echo "Port 10000 not found in firewall rules"
             sudo systemctl reload nginx
           EOSSH
 
@@ -76,7 +82,6 @@ jobs:
         run: |
           echo "Waiting for application to start..."
           sleep 30
-          echo "Checking application status..."
           for i in {1..5}; do
             echo "Attempt $i of 5..."
             if curl -v --fail --max-time 30 http://161.35.137.136:10000; then
