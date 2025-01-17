@@ -18,8 +18,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: './pm-video-processor-backend/package-lock.json'
+          # Temporarily disable caching to isolate the issue
+          cache: false
+
+      - name: Configure npm cache
+        run: |
+          mkdir -p ~/.npm-cache
+          npm config set cache ~/.npm-cache
 
       - name: Install Dependencies
         working-directory: pm-video-processor-backend
