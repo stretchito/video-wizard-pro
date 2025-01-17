@@ -30,20 +30,14 @@ export class AppError extends Error {
 
 export const errorHandler: ErrorRequestHandler = (
   err: Error | AppError,
-  req: Request,
+  _req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   // Log the full error details
   logger.error('Error details:', {
     error: err,
-    stack: err.stack,
-    body: req.body,
-    query: req.query,
-    params: req.params,
-    path: req.path,
-    method: req.method,
-    headers: req.headers
+    stack: err.stack
   });
 
   if (err instanceof AppError) {

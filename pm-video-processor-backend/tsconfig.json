@@ -3,7 +3,7 @@
     "target": "es2020",
     "module": "commonjs",
     "moduleResolution": "node",
-    "lib": ["es2020"],
+    "lib": ["es2020", "dom"],
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
@@ -15,7 +15,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
-    "typeRoots": ["./node_modules/@types", "./src/types"]
+    "typeRoots": ["./node_modules/@types", "./src/types"],
+    "types": ["node", "express"]
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
