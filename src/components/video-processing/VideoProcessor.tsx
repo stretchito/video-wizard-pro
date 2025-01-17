@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { VideoSettings as VideoSettingsType, ProcessedVideo } from "@/types/video";
 import { useToast } from "@/hooks/use-toast";
-
-const BACKEND_URL = "https://dreadnought-video-processor-backend.onrender.com";
+import { API_CONFIG } from "@/config/api";
 
 interface VideoProcessorProps {
   videoFiles: File[];
@@ -34,9 +33,9 @@ export const useVideoProcessor = ({
       });
       formData.append('settings', JSON.stringify(videoSettings));
 
-      console.log('Making request to:', `${BACKEND_URL}/api/videos/process`);
+      console.log('Making request to:', `${API_CONFIG.BASE_URL}/api/videos/process`);
       
-      const response = await fetch(`${BACKEND_URL}/api/videos/process`, {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/api/videos/process`, {
         method: 'POST',
         body: formData,
       });
