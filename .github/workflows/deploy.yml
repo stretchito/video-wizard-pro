@@ -21,10 +21,18 @@ jobs:
           # Temporarily disable caching to isolate the issue
           cache: false
 
-      - name: Configure npm cache
+      - name: Configure and verify npm cache
         run: |
+          echo "Current directory structure:"
+          ls -la ~
+          echo "Creating npm cache directory..."
           mkdir -p ~/.npm-cache
+          echo "Verifying npm cache directory:"
+          ls -la ~/.npm-cache
+          echo "Setting npm cache location..."
           npm config set cache ~/.npm-cache
+          echo "Confirming npm cache config:"
+          npm config get cache
 
       - name: Install Dependencies
         working-directory: pm-video-processor-backend
