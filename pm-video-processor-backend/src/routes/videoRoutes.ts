@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import multer from 'multer';
-import { processVideoHandler } from '../controllers/videoController';
+import { processVideoHandler } from '../controllers/videoController.js';
 
 const router = Router();
 
