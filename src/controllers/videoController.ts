@@ -7,7 +7,7 @@ import { cleanupFiles } from './video/cleanup';
 import { validateVideoRequest } from './video/validation';
 import { 
   videoProcessingDuration,
-  processingErrors as videoProcessingErrors,
+  videoProcessingErrors,
   activeProcessingJobs,
   storageUsage
 } from '../utils/metrics';
