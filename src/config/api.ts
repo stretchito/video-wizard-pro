@@ -7,9 +7,12 @@ const getBaseUrl = () => {
     return 'http://localhost:10000';
   }
   
-  // Remove any trailing slashes and ensure proper URL formatting
+  // Remove any trailing slashes, colons, and ensure proper URL formatting
   const apiUrl = import.meta.env.VITE_API_URL || 'http://161.35.137.136:10000';
-  return apiUrl.replace(/\/+$/, ''); // Remove trailing slashes if present
+  return apiUrl
+    .replace(/\/+$/, '') // Remove trailing slashes
+    .replace(/:[^0-9]/g, '') // Remove any colons not followed by port numbers
+    .replace(/:{2,}/g, ':'); // Replace multiple colons with single colon
 };
 
 export const API_CONFIG: ApiConfig = {
