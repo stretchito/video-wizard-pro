@@ -53,20 +53,18 @@ export const processVideo = async (options: VideoProcessingOptions): Promise<str
 
   return new Promise((resolve, reject) => {
     let command = ffmpeg(inputPath)
-      // Add aggressive memory optimization flags
       .outputOptions([
         '-max_muxing_queue_size 1024',
-        '-y', // Overwrite output files without asking
-        '-preset ultrafast', // Use fastest encoding preset
-        '-movflags +faststart', // Optimize for web playback
-        '-maxrate 1M', // Limit bitrate to 1 Mbps (reduced from 2M)
-        '-bufsize 2M', // Use a 2MB buffer (reduced from 4M)
-        '-threads 1', // Limit to single thread to reduce memory usage
-        '-vf scale=w=min(1280\\,iw):h=min(720\\,ih):force_original_aspect_ratio=decrease', // Limit resolution
-        '-crf 28', // Increase compression (23-28 is a good range, higher = more compression)
+        '-y',
+        '-preset ultrafast',
+        '-movflags +faststart',
+        '-maxrate 1M',
+        '-bufsize 2M',
+        '-threads 1',
+        '-vf scale=w=min(1280\\,iw):h=min(720\\,ih):force_original_aspect_ratio=decrease',
+        '-crf 28',
       ]);
 
-    // Apply effects if specified
     if (effects) {
       const filters: string[] = [];
       
@@ -99,7 +97,6 @@ export const processVideo = async (options: VideoProcessingOptions): Promise<str
       }
     }
 
-    // Add logo if specified
     if (logoPath && logoPosition) {
       logger.info('Adding logo with position:', logoPosition);
       command = command.input(logoPath)
