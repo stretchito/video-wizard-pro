@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 import { processVideo } from '../utils/ffmpeg';
-import { VideoProcessingRequest, ProcessingOptions } from './video/types';
-import { logger } from './video/logger';
-import { uploadToSupabase } from './video/storage';
-import { cleanupFiles } from './video/cleanup';
-import { validateVideoRequest } from './video/validation';
+import { VideoProcessingRequest, ProcessingOptions } from '../controllers/video/types';
+import { logger } from '../controllers/video/logger';
+import { uploadToSupabase } from '../controllers/video/storage';
+import { cleanupFiles } from '../controllers/video/cleanup';
+import { validateVideoRequest } from '../controllers/video/validation';
 import { 
   videoProcessingDuration,
   videoProcessingErrors,
   activeProcessingJobs,
-  updateStorageUsage
+  storageUsage
 } from '../utils/metrics';
 
 export const processVideoHandler = async (
@@ -54,7 +54,7 @@ export const processVideoHandler = async (
     logger.info('Video processed successfully, uploading to Supabase');
 
     const { publicUrl, fileName } = await uploadToSupabase(processedVideoPath);
-    await updateStorageUsage(fileSize);
+    storageUsage.set(fileSize);
 
     const duration = (Date.now() - startTime) / 1000;
     videoProcessingDuration.observe(duration);
